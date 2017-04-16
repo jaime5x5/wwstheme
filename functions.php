@@ -72,6 +72,65 @@ endif;
 add_action( 'after_setup_theme', 'jaime_test_setup' );
 
 /**
+ * Register custom fonts.
+ */
+function jaime_test_fonts_url() {
+	$fonts_url = '';
+
+	/**
+	 * Translators: If there are characters in your language that are not
+	 * supported by Source Sans Pro and PT Serif, translate this to 'off'. Do not translate
+	 * into your own language.
+	 */
+	$source_sans_prq = _x( 'on', 'Source Sans Pro font: on or off', 'jaime_test' );
+        
+        $pt_serif = _x( 'on', 'PT Serif font: on or off', 'jaime_test' );
+        
+        if( 'off' !== $source_sans_prq ) {
+            $font_families[] = 'Source Sans Pro:400,400i,700,900';
+        }
+        
+        if( 'off' !== $source_sans_prq ) {
+            $font_families[] = 'PT Serif:400,400i,700,700i';
+        }
+        
+        $font_families = array();
+
+	if (in_array($source_sans_prq, $pt_serif)) {
+
+		$query_args = array(
+			'family' => urlencode( implode( '|', $font_families ) ),
+			'subset' => urlencode( 'latin,latin-ext' ),
+		);
+
+		$fonts_url = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
+	}
+
+	return esc_url_raw( $fonts_url );
+}
+
+/**
+ * Add preconnect for Google Fonts.
+ *
+ * @since Twenty Seventeen 1.0
+ *
+ * @param array  $urls           URLs to print for resource hints.
+ * @param string $relation_type  The relation type the URLs are printed.
+ * @return array $urls           URLs to print for resource hints.
+ */
+function jaime_test_resource_hints( $urls, $relation_type ) {
+	if ( wp_style_is( 'jaime_test-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+		$urls[] = array(
+			'href' => 'https://fonts.gstatic.com',
+			'crossorigin',
+		);
+	}
+
+	return $urls;
+}
+add_filter( 'wp_resource_hints', 'jaime_test_resource_hints', 10, 2 );
+
+/**
  * Set the content width in pixels, based on the theme's design and stylesheet.
  *
  * Priority 0 to make it available to lower priority callbacks.
@@ -105,6 +164,8 @@ add_action( 'widgets_init', 'jaime_test_widgets_init' );
  * Enqueue scripts and styles.
  */
 function jaime_test_scripts() {
+    // Enqueue Google Fonts: Source Sans Pro and PT Serif
+	wp_enqueue_style( 'wws-fonts', jaime_test_fonts_url()  );
 	wp_enqueue_style( 'jaime-test-style', get_stylesheet_uri() );
 
 	wp_enqueue_script( 'jaime-test-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
